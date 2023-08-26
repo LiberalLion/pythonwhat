@@ -117,13 +117,11 @@ def check_function(
             sol_parts = {**sol_out[name][index]}
         except KeyError:
             state.report(
-                "`check_function()` couldn't find a call of `%s()` in the solution code. Make sure you get the mapping right!"
-                % name
+                f"`check_function()` couldn't find a call of `{name}()` in the solution code. Make sure you get the mapping right!"
             )
         except IndexError:
             state.report(
-                "`check_function()` couldn't find %s calls of `%s()` in your solution code."
-                % (index + 1, name)
+                f"`check_function()` couldn't find {index + 1} calls of `{name}()` in your solution code."
             )
 
     try:
@@ -166,7 +164,6 @@ def check_function(
 
     # three types of parts: pos_args, keywords, args (e.g. these are bound to sig)
     append_message = FeedbackComponent(expand_msg, fmt_kwargs)
-    child = part_to_child(
+    return part_to_child(
         stu_parts, sol_parts, append_message, state, node_name="function_calls"
     )
-    return child

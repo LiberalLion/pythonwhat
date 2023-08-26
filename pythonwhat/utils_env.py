@@ -23,4 +23,4 @@ def set_context_vals(env, context, context_vals=None):
         if len(crnt_ctx) == 1 != len(context_vals):
             context_vals = [context_vals]
 
-        env.update({key: value for (key, value) in zip(crnt_ctx, context_vals)})
+        env.update(dict(zip(crnt_ctx, context_vals)))

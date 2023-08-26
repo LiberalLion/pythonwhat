@@ -281,11 +281,7 @@ def has_expr(
     if undefined_msg is None:
         undefined_msg = DEFAULT_UNDEFINED_NAME_MSG
     if error_msg is None:
-        if test == "error":
-            error_msg = DEFAULT_ERROR_MSG_INV
-        else:
-            error_msg = DEFAULT_ERROR_MSG
-
+        error_msg = DEFAULT_ERROR_MSG_INV if test == "error" else DEFAULT_ERROR_MSG
     if state.solution_code is not None and isinstance(expr_code, str):
         expr_code = expr_code.replace("__focus__", state.solution_code)
 
@@ -313,8 +309,7 @@ def has_expr(
 
         if (test == "error") ^ isinstance(eval_sol, Exception):
             raise InstructorError.from_message(
-                "Evaluating expression raised error in solution process (or didn't raise if testing for one). "
-                "Error: {} - {}".format(type(eval_sol), str_sol)
+                f"Evaluating expression raised error in solution process (or didn't raise if testing for one). Error: {type(eval_sol)} - {str_sol}"
             )
         if isinstance(eval_sol, ReprFail):
             raise InstructorError.from_message(
@@ -335,19 +330,18 @@ def has_expr(
         "sol_part": state.solution_parts,
         "name": name,
         "test": test,
-        "test_desc": "" if test == "value" else "the %s " % test,
+        "test_desc": "" if test == "value" else f"the {test} ",
         "expr_code": expr_code,
+        "stu_eval": str(eval_stu),
+        "sol_eval": str(eval_sol),
     }
-
-    fmt_kwargs["stu_eval"] = str(eval_stu)
-    fmt_kwargs["sol_eval"] = str(eval_sol)
 
     # wrap in quotes if eval_sol or eval_stu are strings
     if test == "value":
         if isinstance(eval_stu, str):
-            fmt_kwargs["stu_eval"] = '\'{}\''.format(fmt_kwargs["stu_eval"])
+            fmt_kwargs["stu_eval"] = f"""\'{fmt_kwargs["stu_eval"]}\'"""
         if isinstance(eval_sol, str):
-            fmt_kwargs["sol_eval"] = '\'{}\''.format(fmt_kwargs["sol_eval"])
+            fmt_kwargs["sol_eval"] = f"""\'{fmt_kwargs["sol_eval"]}\'"""
 
     # reformat student evaluation string if it is too long
     fmt_kwargs["stu_eval"] = utils.shorten_string(fmt_kwargs["stu_eval"])
@@ -541,8 +535,7 @@ def has_import(
 
     if name not in solution_imports:
         raise InstructorError.from_message(
-            "`has_import()` couldn't find an import of the package %s in your solution code."
-            % name
+            f"`has_import()` couldn't find an import of the package {name} in your solution code."
         )
 
     fmt_kwargs = {"pkg": name, "alias": solution_imports[name]}
@@ -699,9 +692,7 @@ def has_printout(
         ][index]["node"]
     except (KeyError, IndexError):
         raise InstructorError.from_message(
-            "`has_printout({})` couldn't find the {} print call in your solution.".format(
-                index, get_ord(index + 1)
-            )
+            f"`has_printout({index})` couldn't find the {get_ord(index + 1)} print call in your solution."
         )
 
     out_sol, str_sol = getOutputInProcess(
@@ -718,8 +709,7 @@ def has_printout(
     if isinstance(str_sol, Exception):
         with debugger(state):
             state.report(
-                "Evaluating the solution expression {} raised error in solution process."
-                "Error: {} - {}".format(sol_call_str, type(out_sol), str_sol)
+                f"Evaluating the solution expression {sol_call_str} raised error in solution process.Error: {type(out_sol)} - {str_sol}"
             )
 
     has_output(
@@ -817,23 +807,22 @@ def has_chosen(state, correct, msgs):
         raise InstructorError.from_message(
             "Option not available in the student process"
         )
-    else:
-        selected_option = getOptionFromProcess(student_process, MC_VAR_NAME)
-        if not issubclass(type(selected_option), int):
-            raise InstructorError.from_message("selected_option should be an integer")
+    selected_option = getOptionFromProcess(student_process, MC_VAR_NAME)
+    if not issubclass(type(selected_option), int):
+        raise InstructorError.from_message("selected_option should be an integer")
 
-        if selected_option < 1 or correct < 1:
-            raise InstructorError.from_message(
-                "selected_option and correct should be greater than zero"
-            )
+    if selected_option < 1 or correct < 1:
+        raise InstructorError.from_message(
+            "selected_option and correct should be greater than zero"
+        )
 
-        if selected_option > len(msgs) or correct > len(msgs):
-            raise InstructorError.from_message(
-                "there are not enough feedback messages defined"
-            )
+    if selected_option > len(msgs) or correct > len(msgs):
+        raise InstructorError.from_message(
+            "there are not enough feedback messages defined"
+        )
 
-        feedback_msg = msgs[selected_option - 1]
+    feedback_msg = msgs[selected_option - 1]
 
-        state.reporter.success_msg = msgs[correct - 1]
+    state.reporter.success_msg = msgs[correct - 1]
 
-        state.do_test(EqualTest(selected_option, correct, feedback_msg))
+    state.do_test(EqualTest(selected_option, correct, feedback_msg))

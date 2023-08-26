@@ -129,7 +129,7 @@ def test_run_solution_dir():
     workspace_location = "workspace"
 
     with in_temp_dir():
-        write_file("solution/" + file_dir, "c", code)
+        write_file(f"solution/{file_dir}", "c", code)
 
         os.makedirs(workspace_location)
         with ChDir(workspace_location):

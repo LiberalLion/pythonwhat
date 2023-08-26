@@ -172,8 +172,7 @@ def check_object(state, index, missing_msg=None, expand_msg=None, typestr="varia
         and state.has_different_processes()
     ):
         raise InstructorError.from_message(
-            "`check_object()` couldn't find object `%s` in the solution process."
-            % index
+            f"`check_object()` couldn't find object `{index}` in the solution process."
         )
 
     append_message = FeedbackComponent(expand_msg, {"index": index, "typestr": typestr})
@@ -196,11 +195,13 @@ def check_object(state, index, missing_msg=None, expand_msg=None, typestr="varia
         )
     )
 
-    child = part_to_child(
-        stu_part, sol_part, append_message, state, node_name="object_assignments"
+    return part_to_child(
+        stu_part,
+        sol_part,
+        append_message,
+        state,
+        node_name="object_assignments",
     )
-
-    return child
 
 
 def is_instance(state, inst, not_instance_msg=None):
@@ -239,8 +240,7 @@ def is_instance(state, inst, not_instance_msg=None):
 
     if not isInstanceInProcess(sol_name, inst, state.solution_process):
         raise InstructorError.from_message(
-            "`is_instance()` noticed that `%s` is not a `%s` in the solution process."
-            % (sol_name, inst.__name__)
+            f"`is_instance()` noticed that `{sol_name}` is not a `{inst.__name__}` in the solution process."
         )
 
     feedback = FeedbackComponent(not_instance_msg, {"inst": inst})
@@ -341,8 +341,7 @@ def check_keys(state, key, missing_msg=None, expand_msg=None):
 
     if not isDefinedCollInProcess(sol_name, key, state.solution_process):
         raise InstructorError.from_message(
-            "`check_keys()` couldn't find key `%s` in object `%s` in the solution process."
-            % (key, sol_name)
+            f"`check_keys()` couldn't find key `{key}` in object `{sol_name}` in the solution process."
         )
 
     # check if key available

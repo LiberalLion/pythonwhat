@@ -101,7 +101,7 @@ def prep_context():
     # only if PYTHONWHAT_V2_ONLY is not set, support v1
     if include_v1():
         tree, probe_cntxt = build_probe_context()
-        cntxt.update(probe_cntxt)
+        cntxt |= probe_cntxt
     else:
         tree = None
 

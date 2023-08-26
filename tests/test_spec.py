@@ -205,14 +205,12 @@ def do_override_test(
     if part_name:
         if not override:
             override = parts[part_name]
-        sct = base_check + '.check_{}({}).override("""{}""").has_equal_ast()'.format(
-            part_name, part_index, override
-        )
+        sct = f'{base_check}.check_{part_name}({part_index}).override("""{override}""").has_equal_ast()'
     else:
         # whole code (e.g. if expression, or for loop)
         if not override:
             override = code.format(**parts)
-        sct = base_check + '.override("""{}""").has_equal_ast()'.format(override)
+        sct = f'{base_check}.override("""{override}""").has_equal_ast()'
 
     data = {
         "DC_SOLUTION": code.format(**parts),
@@ -258,7 +256,7 @@ def test_override(k, code):
     else:
         indx = "0"
 
-    base_check = "Ex().check_{}({})".format(k, indx)
+    base_check = f"Ex().check_{k}({indx})"
 
     # pass overall test ----
     do_override_test(code, base_check, PARTS)
@@ -338,7 +336,7 @@ def test_f_2_funcs(f, addx):
 
 
 def test_f_add_unary_func(f):
-    g = f >> (lambda state: state + "c")
+    g = f >> (lambda state: f"{state}c")
     assert g("a") == "abc"
 
 
@@ -368,7 +366,7 @@ def test_ex_add_f_add_f(ex, f, f2):
 
 
 def test_ex_add_unary(ex):
-    assert (ex >> (lambda state: state + "b"))._state == "statexb"
+    assert (ex >> (lambda state: f"{state}b"))._state == "statexb"
 
 
 def test_ex_add_ex_err(ex):

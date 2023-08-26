@@ -123,7 +123,7 @@ class State(ProtoState):
         bad_parameters = set(kwargs) - set(self.parameters)
         if bad_parameters:
             raise ValueError(
-                "Invalid init parameters for State: %s" % ", ".join(bad_parameters)
+                f'Invalid init parameters for State: {", ".join(bad_parameters)}'
             )
 
         base_kwargs = {
@@ -169,7 +169,7 @@ class State(ProtoState):
                     kwargs.pop(context)
 
         klass = self.SUBCLASSES[node_name] if node_name else State
-        init_kwargs = {**base_kwargs, **kwargs}
+        init_kwargs = base_kwargs | kwargs
         child = klass(**init_kwargs)
 
         extra_attrs = set(vars(self)) - set(self.parameters)
@@ -195,8 +195,7 @@ class State(ProtoState):
         if not (self.is_root or self.is_creator_type("run")):
             with debugger(self):
                 self.report(
-                    "`%s()` should only be called focusing on a full script, following `Ex()` or `run()`. %s"
-                    % (fun, extra_msg)
+                    f"`{fun}()` should only be called focusing on a full script, following `Ex()` or `run()`. {extra_msg}"
                 )
 
     def is_creator_type(self, type):
@@ -206,51 +205,43 @@ class State(ProtoState):
         if self.__class__.__name__ not in klasses:
             with debugger(self):
                 self.report(
-                    "`%s()` can only be called on %s."
-                    % (fun, " or ".join(["`%s()`" % pf for pf in prev_fun]))
+                    f'`{fun}()` can only be called on {" or ".join([f"`{pf}()`" for pf in prev_fun])}.'
                 )
 
     def assert_is_not(self, klasses, fun, prev_fun):
         if self.__class__.__name__ in klasses:
             with debugger(self):
                 self.report(
-                    "`%s()` should not be called on %s."
-                    % (fun, " or ".join(["`%s()`" % pf for pf in prev_fun]))
+                    f'`{fun}()` should not be called on {" or ".join([f"`{pf}()`" for pf in prev_fun])}.'
                 )
 
     def parse_external(self, code):
-        res = (None, None)
         try:
             return self.ast_dispatcher.parse(code)
         except IndentationError as e:
             e.filename = "script.py"
             # no line info for now
             self.report(
-                "Your code could not be parsed due to an error in the indentation:<br>`%s.`"
-                % str(e)
+                f"Your code could not be parsed due to an error in the indentation:<br>`{str(e)}.`"
             )
 
         except SyntaxError as e:
             e.filename = "script.py"
             # no line info for now
             self.report(
-                "Your code can not be executed due to a syntax error:<br>`%s.`" % str(e)
+                f"Your code can not be executed due to a syntax error:<br>`{str(e)}.`"
             )
 
-        # Can happen, can't catch this earlier because we can't differentiate between
-        # TypeError in parsing or TypeError within code (at runtime).
         except:
             self.report("Something went wrong while parsing your code.")
 
-        return res
+        return None, None
 
     def parse_internal(self, code):
         try:
             return self.ast_dispatcher.parse(code)
         except Exception as e:
-            self.report(
-                "Something went wrong when parsing the solution code: %s" % str(e)
-            )
+            self.report(f"Something went wrong when parsing the solution code: {str(e)}")
 
     def parse(self, text):
         if self.debug:
@@ -270,14 +261,14 @@ class State(ProtoState):
             return Dispatcher(self.pre_exercise_code)
         except Exception as e:
             with debugger(self):
-                self.report("Something went wrong when parsing the PEC: %s" % str(e))
+                self.report(f"Something went wrong when parsing the PEC: {str(e)}")
 
 
 class Dispatcher(DispatcherInterface):
     _context_cache = dict()
 
     def __init__(self, context_code=""):
-        self._parser_cache = dict()
+        self._parser_cache = {}
         context_ast = getattr(self._context_cache, context_code, None)
         if context_ast is None:
             context_ast = self._context_cache[context_code] = self.parse(context_code)[

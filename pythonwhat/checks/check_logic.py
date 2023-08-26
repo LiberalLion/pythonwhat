@@ -151,14 +151,12 @@ def override(state, solution):
                 break
 
     kwargs = state.feedback_context.kwargs if state.feedback_context else {}
-    child = state.to_child(
+    return state.to_child(
         solution_ast=new_ast,
         student_ast=state.student_ast,
         highlight=state.highlight,
         append_message=FeedbackComponent("", kwargs),
     )
-
-    return child
 
 
 def set_context(state, *args, **kwargs):
@@ -207,7 +205,7 @@ def set_context(state, *args, **kwargs):
     sol_crnt = state.solution_context.context
 
     # for now, you can't specify both
-    if len(args) > 0 and len(kwargs) > 0:
+    if args and kwargs:
         raise InstructorError.from_message(
             "In `set_context()`, specify arguments either by position, either by name."
         )
@@ -217,9 +215,7 @@ def set_context(state, *args, **kwargs):
         # stop if too many pos args for solution
         if len(args) > len(sol_crnt):
             raise InstructorError.from_message(
-                "Too many positional args. There are {} context vals, but tried to set {}".format(
-                    len(sol_crnt), len(args)
-                )
+                f"Too many positional args. There are {len(sol_crnt)} context vals, but tried to set {len(args)}"
             )
         # set pos args
         upd_sol = sol_crnt.update(dict(zip(sol_crnt.keys(), args)))
@@ -233,9 +229,7 @@ def set_context(state, *args, **kwargs):
         # stop if keywords don't match with solution
         if set(kwargs) - set(upd_sol):
             raise InstructorError.from_message(
-                "`set_context()` failed: context val names are {}, but you tried to set {}.".format(
-                    upd_sol or "missing", sorted(list(kwargs.keys()))
-                )
+                f'`set_context()` failed: context val names are {upd_sol or "missing"}, but you tried to set {sorted(list(kwargs.keys()))}.'
             )
         out_sol = upd_sol.update(kwargs)
         # need to match keys in kwargs with corresponding keys in stu context

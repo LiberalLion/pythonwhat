@@ -57,7 +57,7 @@ import pytest
     ],
 )
 def test_builtins(name, params, arguments):
-    code = "%s(%s)" % (name, arguments)
+    code = f"{name}({arguments})"
     s = setup_state(code, code)
     fun_state = s.check_function(name)
     for param in params:
@@ -82,7 +82,7 @@ class Test():
         self.a = value
 x = Test(123)
     """
-    code = "%s(x, %s)" % (name, values)
+    code = f"{name}(x, {values})"
     s = setup_state(code, code, pec=pec)
     fun_state = s.check_function(name)
     for arg in arguments:
@@ -113,7 +113,7 @@ x = Test(123)
     ],
 )
 def test_numpy_builtins(name, values, arguments):
-    code = "%s(%s)" % (name, values)
+    code = f"{name}({values})"
     s = setup_state(code, code, pec="import numpy")
     fun_state = s.check_function(name)
     for arg in arguments:
@@ -128,9 +128,9 @@ def test_math_builtins():
 
 @pytest.mark.parametrize("fun, argument", [("append", "object"), ("count", "value")])
 def test_list_methods(fun, argument):
-    code = "x.%s(2)" % fun
+    code = f"x.{fun}(2)"
     s = setup_state(code, code, "x = [1, 2, 3]")
-    s.check_function("x.%s" % fun).check_args(argument).has_equal_value()
+    s.check_function(f"x.{fun}").check_args(argument).has_equal_value()
 
 
 # One-offs --------------------------------------------------------------------

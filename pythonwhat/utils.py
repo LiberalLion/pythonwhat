@@ -12,7 +12,7 @@ def v2_only():
 
 def shorten_string(text):
     if len(text) > 50:
-        text = text[0:45] + "..."
+        text = f"{text[:45]}..."
     return text
 
 def has_newline(text):
@@ -32,9 +32,7 @@ def copy_env(env):
         )
         and isinstance(value, mutableTypes)
     }
-    updated_env = dict(env)
-    updated_env.update(update_env)
-    return updated_env
+    return dict(env) | update_env
 
 
 def first_lower(s):

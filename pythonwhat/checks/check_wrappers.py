@@ -649,7 +649,7 @@ __NODE_WRAPPERS__ = {
     },
 }
 
-scts = dict()
+scts = {}
 
 # make has_equal_part wrappers
 
@@ -728,20 +728,20 @@ add_partial_sct(
 # include rest of wrappers
 for k, v in __PART_WRAPPERS__.items():
     check_fun = state_partial(check_part, k, v)
-    add_partial_sct(check_fun, "check_" + k)
+    add_partial_sct(check_fun, f"check_{k}")
 
 for k, v in __PART_INDEX_WRAPPERS__.items():
     check_fun = state_partial(check_part_index, k, part_msg=v)
-    add_partial_sct(check_fun, "check_" + k)
+    add_partial_sct(check_fun, f"check_{k}")
 
 for k, v in __NODE_WRAPPERS__.items():
-    check_fun = state_partial(check_node, k + "s", typestr=v["typestr"])
+    check_fun = state_partial(check_node, f"{k}s", typestr=v["typestr"])
     check_fun.__doc__ = Template(v["docstr"]).render(
         typestr="typestr: If specified, this overrides the standard way of referring to the construct you're zooming in on.",
         missing_msg="missing_msg: If specified, this overrides the automatically generated feedback message in case the construct could not be found.",
         expand_msg="expand_msg: If specified, this overrides the automatically generated feedback message that is prepended to feedback messages that are thrown further in the SCT chain.",
     )
-    add_partial_sct(check_fun, "check_" + k)
+    add_partial_sct(check_fun, f"check_{k}")
 
 for k in [
     "set_context",

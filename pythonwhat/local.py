@@ -85,12 +85,12 @@ class WorkerProcess(Process):
             with CaptureErrors(output):
                 next_task = self.task_queue.get()
                 answer = next_task(shell)
-            if len(output) > 0:  # means backend error happened
+            if output:  # means backend error happened
                 answer = output
             output = []
             with CaptureErrors(output):
                 self.result_queue.put_nowait(answer)
-            if len(output) > 0:  # means backend error happened
+            if output:  # means backend error happened
                 self.result_queue.put_nowait(output)
             if isinstance(next_task, TaskKillProcess):
                 break  # break while loop -> we do not wait upon new task

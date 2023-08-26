@@ -15,7 +15,7 @@ def sig_from_obj(obj_char):
 
 
 def get_manual_sigs():
-    manual_sigs = {
+    return {
         # builtins
         "abs": [param("x", param.POSITIONAL_ONLY)],
         "all": [param("iterable", param.POSITIONAL_ONLY)],
@@ -133,7 +133,9 @@ def get_manual_sigs():
             param("subok", param.POSITIONAL_OR_KEYWORD, default=False),
             param("ndmin", param.POSITIONAL_OR_KEYWORD, default=0),
         ],
-        "numpy.random.seed": [param("seed", param.POSITIONAL_OR_KEYWORD, default=None)],
+        "numpy.random.seed": [
+            param("seed", param.POSITIONAL_OR_KEYWORD, default=None)
+        ],
         "numpy.random.rand": [
             param("d0", param.POSITIONAL_ONLY, default=None),
             param("d1", param.POSITIONAL_ONLY, default=None),
@@ -174,4 +176,3 @@ def get_manual_sigs():
         # others
         "math.radians": [param("x", param.POSITIONAL_ONLY)],
     }
-    return manual_sigs

@@ -17,9 +17,8 @@ def part_to_child(stu_part, sol_part, append_message, state, node_name=None):
     # stu_part and sol_part will be accessible on all templates
     append_message.kwargs.update({"stu_part": stu_part, "sol_part": sol_part})
 
-    # if the parts are dictionaries, use to deck out child state
-    if all(isinstance(p, dict) for p in [stu_part, sol_part]):
-        child_state = state.to_child(
+    return (
+        state.to_child(
             student_ast=stu_part["node"],
             solution_ast=sol_part["node"],
             student_context=stu_part.get("target_vars"),
@@ -30,16 +29,14 @@ def part_to_child(stu_part, sol_part, append_message, state, node_name=None):
             append_message=append_message,
             node_name=node_name,
         )
-    else:
-        # otherwise, assume they are just nodes
-        child_state = state.to_child(
+        if all(isinstance(p, dict) for p in [stu_part, sol_part])
+        else state.to_child(
             student_ast=stu_part,
             solution_ast=sol_part,
             append_message=append_message,
             node_name=node_name,
         )
-
-    return child_state
+    )
 
 
 def check_part(state, name, part_msg, missing_msg=None, expand_msg=None):
@@ -153,7 +150,7 @@ def with_context(state, *args, child=None):
     if isinstance(solution_res, Exception):
         with debugger(state):
             state.report(
-                "error in the solution, running test_with(): %s" % str(solution_res)
+                f"error in the solution, running test_with(): {str(solution_res)}"
             )
 
     student_res = setUpNewEnvInProcess(
@@ -181,8 +178,7 @@ def with_context(state, *args, child=None):
         if isinstance(close_solution_context, Exception):
             with debugger(state):
                 state.report(
-                    "error in the solution, closing the `with` fails with: %s"
-                    % close_solution_context
+                    f"error in the solution, closing the `with` fails with: {close_solution_context}"
                 )
 
         close_student_context = breakDownNewEnvInProcess(process=state.student_process)
@@ -246,23 +242,21 @@ def check_args(state, name, missing_msg=None):
     if missing_msg is None:
         missing_msg = "Did you specify the {{part}}?"
 
-    if name in ["*args", "**kwargs"]:  # for check_function_def
+    if name in ["*args", "**kwargs"]:
         return check_part(state, name, name, missing_msg=missing_msg)
+    if isinstance(name, list):  # dealing with args or kwargs
+        arg_str = (
+            f"{get_ord(name[1] + 1)} argument passed as a variable length argument"
+            if name[0] == "args"
+            else f"argument `{name[1]}`"
+        )
     else:
-        if isinstance(name, list):  # dealing with args or kwargs
-            if name[0] == "args":
-                arg_str = "{} argument passed as a variable length argument".format(
-                    get_ord(name[1] + 1)
-                )
-            else:
-                arg_str = "argument `{}`".format(name[1])
-        else:
-            arg_str = (
-                "{} argument".format(get_ord(name + 1))
-                if isinstance(name, int)
-                else "argument `{}`".format(name)
-            )
-        return check_part_index(state, "args", name, arg_str, missing_msg=missing_msg)
+        arg_str = (
+            f"{get_ord(name + 1)} argument"
+            if isinstance(name, int)
+            else f"argument `{name}`"
+        )
+    return check_part_index(state, "args", name, arg_str, missing_msg=missing_msg)
 
 
 # CALL CHECK ==================================================================
@@ -271,10 +265,10 @@ def check_args(state, name, missing_msg=None):
 def build_call(callstr, node):
     if isinstance(node, ast.FunctionDef):  # function name
         func_expr = ast.Name(id=node.name, ctx=ast.Load())
-        argstr = "`%s`" % callstr.replace("f", node.name)
+        argstr = f'`{callstr.replace("f", node.name)}`'
     elif isinstance(node, ast.Lambda):  # lambda body expr
         func_expr = node
-        argstr = "it with the arguments `%s`" % callstr.replace("f", "")
+        argstr = f'it with the arguments `{callstr.replace("f", "")}`'
     else:
         raise TypeError("Can't handle AST that is passed.")
 
@@ -324,6 +318,4 @@ def check_call(state, callstr, argstr=None, expand_msg=None):
     sol_part, _ = build_call(callstr, state.solution_parts["node"])
 
     append_message = FeedbackComponent(expand_msg, {"argstr": argstr or _argstr})
-    child = part_to_child(stu_part, sol_part, append_message, state)
-
-    return child
+    return part_to_child(stu_part, sol_part, append_message, state)

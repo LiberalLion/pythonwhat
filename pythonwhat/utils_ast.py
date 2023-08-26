@@ -9,8 +9,6 @@ def wrap_in_module(node):
         if len(node) > 0:
             new_node.first_token = node[0].first_token
             new_node.last_token = node[-1].last_token
-        else:
-            pass  # do nothing
     else:
         new_node.first_token = node.first_token
         new_node.last_token = node.first_token
@@ -30,7 +28,9 @@ def assert_ast(state, element, fmt_kwargs):
         element = element["node"]
     if isinstance(element, ast.AST):
         return
-    if isinstance(element, list) and all([isinstance(el, ast.AST) for el in element]):
+    if isinstance(element, list) and all(
+        isinstance(el, ast.AST) for el in element
+    ):
         return
     with debugger(state):
         state.report(err_msg, fmt_kwargs)

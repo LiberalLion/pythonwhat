@@ -13,8 +13,7 @@ def shout_echo(word1, echo=1):
     data = {
         "DC_CODE": code,
         "DC_SOLUTION": code,
-        "DC_SCT": "Ex().check_function_def('shout_echo').check_body().set_context(%s).has_equal_value(name = 'shout_words')"
-        % spec,
+        "DC_SCT": f"Ex().check_function_def('shout_echo').check_body().set_context({spec}).has_equal_value(name = 'shout_words')",
     }
     output = helper.run(data)
     assert output["correct"]
@@ -42,8 +41,7 @@ def test_check_dict_comp(spec):
     data = {
         "DC_CODE": code,
         "DC_SOLUTION": code,
-        "DC_SCT": "Ex().check_dict_comp().check_key().set_context(%s).has_equal_value()"
-        % spec,
+        "DC_SCT": f"Ex().check_dict_comp().check_key().set_context({spec}).has_equal_value()",
     }
     output = helper.run(data)
     assert output["correct"]

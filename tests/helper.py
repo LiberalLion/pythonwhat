@@ -86,12 +86,10 @@ def run(data, run_code=True):
 
 
 def get_sct_payload(output):
-    sct_output = [out for out in output if out["type"] == "sct"]
-    if len(sct_output) > 0:
+    if sct_output := [out for out in output if out["type"] == "sct"]:
         return sct_output[0]["payload"]
-    else:
-        print(output)
-        return None
+    print(output)
+    return None
 
 
 def passes(st):

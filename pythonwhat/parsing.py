@@ -53,7 +53,7 @@ class TargetVars(Mapping):
     def __str__(self):
         """Format target vars for printing"""
         if len(self) > 1:
-            return "({})".format(", ".join(self._od.keys()))
+            return f'({", ".join(self._od.keys())})'
         else:
             return "".join(self._od.keys())
 
@@ -143,10 +143,7 @@ class Parser(ast.NodeVisitor):
 
     @staticmethod
     def get_arg(el):
-        if el is None:
-            return None
-        else:
-            return el.arg
+        return None if el is None else el.arg
 
     @staticmethod
     def get_arg_tuples(arguments, defaults):
@@ -159,10 +156,10 @@ class Parser(ast.NodeVisitor):
         # only difference is that it doesn't pull out arg.arg, so we can
         # use all the information on the arg node down the road
         match_def = [None] * (len(arguments) - len(defaults)) + defaults
-        part_list = []
-        for _arg, _def in zip(arguments, match_def):
-            part_list.append(Parser.get_arg_part(_arg, _def))
-        return part_list
+        return [
+            Parser.get_arg_part(_arg, _def)
+            for _arg, _def in zip(arguments, match_def)
+        ]
 
     @staticmethod
     def get_arg_part(_arg, _def, type=None):
@@ -174,9 +171,8 @@ class Parser(ast.NodeVisitor):
         return {
             "node": _def or _arg,
             "arg": _arg,
-            # TODO: need to fill out
             "type": type,
-            "is_default": True if _def else False,
+            "is_default": bool(_def),
             "name": _arg.arg,
             "annotation": _arg.annotation,
         }
@@ -269,7 +265,7 @@ class ImportParser(Parser):
 
     def visit_ImportFrom(self, node):
         for imp in node.names:
-            self.out[node.module + "." + imp.name] = imp.asname
+            self.out[f"{node.module}.{imp.name}"] = imp.asname
 
 
 class FunctionParser(Parser):
@@ -307,12 +303,10 @@ class FunctionParser(Parser):
         for imp in node.names:
             if imp.asname is not None:
                 self.mappings[imp.asname] = imp.name
-            else:
-                pass  # e.g. numpy import as numpy, so no action needed.
 
     def visit_ImportFrom(self, node):
         for imp in node.names:
-            self.mappings[imp.asname or imp.name] = node.module + "." + imp.name
+            self.mappings[imp.asname or imp.name] = f"{node.module}.{imp.name}"
 
     def visit_Expr(self, node):
         self.visit(node.value)
@@ -353,8 +347,8 @@ class FunctionParser(Parser):
 
     def visit_Attribute(self, node):
         self.visit(node.value)  # Go deeper for the package/module names!
-        self.gen_name += "." + node.attr  # Add the function name
-        self.raw_name += "." + node.attr
+        self.gen_name += f".{node.attr}"
+        self.raw_name += f".{node.attr}"
 
     def visit_Subscript(self, node):
         # jump over subscripts for the sake of method calls
@@ -432,16 +426,16 @@ class ObjectAccessParser(FunctionParser):
 
     def visit_Attribute(self, node):
         # if already a chain, prepend, else initialize self.current
-        self.gen_name = node.attr + "." + self.gen_name if self.gen_name else node.attr
-        self.raw_name = node.attr + "." + self.raw_name if self.raw_name else node.attr
+        self.gen_name = f"{node.attr}.{self.gen_name}" if self.gen_name else node.attr
+        self.raw_name = f"{node.attr}.{self.raw_name}" if self.raw_name else node.attr
         self.visit(node.value)
 
     def visit_Name(self, node):
         # if name refers to an import, replace
         prefix = self.mappings.get(node.id) or node.id
 
-        self.gen_name = prefix + "." + self.gen_name if self.gen_name else prefix
-        self.raw_name = node.id + "." + self.raw_name if self.raw_name else node.id
+        self.gen_name = f"{prefix}.{self.gen_name}" if self.gen_name else prefix
+        self.raw_name = f"{node.id}.{self.raw_name}" if self.raw_name else node.id
 
         self.out.append(self.gen_name)
         self.gen_name = self.raw_name = ""
@@ -791,7 +785,7 @@ class WithParser(Parser):
             for item in items
         ]
 
-        tv_all = TargetVars(sum([list(c["target_vars"].items()) for c in context], []))
+        tv_all = TargetVars(sum((list(c["target_vars"].items()) for c in context), []))
 
         self.out.append(
             {

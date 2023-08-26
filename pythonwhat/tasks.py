@@ -39,10 +39,7 @@ def process_task(f):
 
 
 def get_env(ns):
-    if "__env__" in ns:
-        return ns["__env__"]
-    else:
-        return ns
+    return ns["__env__"] if "__env__" in ns else ns
 
 
 @contextmanager
@@ -104,35 +101,35 @@ def get_signature(name, mapped_name, signature, manual_sigs, env):
         try:
             fun = eval(mapped_name, env)
         except:
-            raise InstructorError.from_message("%s() was not found." % mapped_name)
+            raise InstructorError.from_message(f"{mapped_name}() was not found.")
 
         # first go through manual sigs
         # try to get signature
         try:
             if name in manual_sigs:
                 signature = inspect.Signature(manual_sigs[name])
-            else:
-                # it might be a method, and we have to find the general method name
-                if "." in mapped_name:
-                    els = name.split(".")
-                    try:
-                        els[0] = type(eval(els[0], env)).__name__
-                        generic_name = ".".join(els[:])
-                    except:
-                        raise InstructorError.from_message("signature error - cannot convert call")
-                    if generic_name in manual_sigs:
-                        signature = inspect.Signature(manual_sigs[generic_name])
-                    else:
-                        raise InstructorError.from_message(
-                            "signature error - %s not in builtins" % generic_name
-                        )
+            elif "." in mapped_name:
+                els = name.split(".")
+                try:
+                    els[0] = type(eval(els[0], env)).__name__
+                    generic_name = ".".join(els[:])
+                except:
+                    raise InstructorError.from_message("signature error - cannot convert call")
+                if generic_name in manual_sigs:
+                    signature = inspect.Signature(manual_sigs[generic_name])
                 else:
-                    raise InstructorError.from_message("manual signature not found")
+                    raise InstructorError.from_message(
+                        f"signature error - {generic_name} not in builtins"
+                    )
+            else:
+                raise InstructorError.from_message("manual signature not found")
         except Exception as e:
             try:
                 signature = inspect.signature(fun)
             except:
-                raise InstructorError.from_message(e.args[0] + " and cannot determine signature")
+                raise InstructorError.from_message(
+                    f"{e.args[0]} and cannot determine signature"
+                )
 
     return signature
 
@@ -164,9 +161,9 @@ from contextlib import ExitStack
 
 def context_env_update(context_list, env):
     es = ExitStack()
+    # create context manager and enter
+    tmp_name = "__pw_cm"
     for item in context_list:
-        # create context manager and enter
-        tmp_name = "__pw_cm"
         cm_code = compile(ast.Expression(item.context_expr), "<context_eval>", "eval")
         env[tmp_name] = es.enter_context(eval(cm_code, env))
 
@@ -217,7 +214,7 @@ def getClass(name, process, shell):
     try:
         obj = get_env(shell.user_ns)[name]
         obj_type = type(obj)
-        return obj_type.__module__ + "." + obj_type.__name__
+        return f"{obj_type.__module__}.{obj_type.__name__}"
     except:
         return None
 
@@ -254,7 +251,7 @@ def getRepresentation(name, process):
     if obj_class in converters:
         repres = convert(name, dill.dumps(converters[obj_class]), process)
         if errored(repres):
-            return ReprFail("manual conversion failed: {}".format(repres))
+            return ReprFail(f"manual conversion failed: {repres}")
         else:
             return repres
     else:
@@ -272,8 +269,7 @@ def getRepresentation(name, process):
             if not errored(stream):
                 return dill.loads(stream)
             return ReprFail(
-                "dilling inside process failed for %s - write manual converter"
-                % obj_class
+                f"dilling inside process failed for {obj_class} - write manual converter"
             )
         except PicklingError:
             return ReprFail(
@@ -331,11 +327,10 @@ def get_output(f, process, shell, *args, **kwargs):
         res = f(*args, process=process, shell=shell, **kwargs)
 
     out_str = out[0].strip()
-    if not isinstance(res, Exception):
-        toret = out_str or "no printouts"
-        return toret, toret
-    else:
+    if isinstance(res, Exception):
         return res, str(res)
+    toret = out_str or "no printouts"
+    return toret, toret
 
 
 @process_task

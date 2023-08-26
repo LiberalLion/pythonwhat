@@ -310,7 +310,7 @@ def test_function_definition(
             "value",
             incorrect_msg=wrong_result_msg,
             error_msg=wrong_result_msg,
-            argstr="`{}{}`".format(name, stringify(el)),
+            argstr=f"`{name}{stringify(el)}`",
         )
 
     for el in outputs or []:
@@ -321,7 +321,7 @@ def test_function_definition(
             "output",
             incorrect_msg=wrong_output_msg,
             error_msg=wrong_output_msg,
-            argstr="`{}{}`".format(name, stringify(el)),
+            argstr=f"`{name}{stringify(el)}`",
         )
 
     for el in errors or []:
@@ -332,7 +332,7 @@ def test_function_definition(
             "error",
             incorrect_msg=wrong_error_msg,
             error_msg=no_error_msg,
-            argstr="`{}{}`".format(name, stringify(el)),
+            argstr=f"`{name}{stringify(el)}`",
         )
 
 
@@ -340,23 +340,18 @@ def test_args(
     state, arg_names, arg_defaults, nb_args_msg, arg_names_msg, arg_defaults_msg
 ):
 
-    MSG_NUM_ARGS = "You should define {{parent[typestr]}} with {{sol_len}} arguments, instead got {{stu_len}}."
-    MSG_BAD_ARG_NAME = "The {{parent[ordinal]}} {{parent[part]}} should be called `{{sol_part[name]}}`, instead got `{{stu_part[name]}}`."
-    MSG_BAD_DEFAULT = (
-        "The {{parent[part]}} `{{stu_part[name]}}` should have no default."
-    )
-    MSG_INC_DEFAULT = (
-        "The {{parent[part]}} `{{stu_part[name]}}` does not have the correct default."
-    )
-
-    MSG_NO_VARARG = "Have you specified an argument to take a `*` argument and named it `{{sol_part['*args'][name]}}`?"
-    MSG_NO_KWARGS = "Have you specified an argument to take a `**` argument and named it `{{sol_part['**kwargs'][name]}}`?"
-    MSG_VARARG_NAME = "Have you specified an argument to take a `*` argument and named it `{{sol_part[name]}}`?"
-    MSG_KWARG_NAME = "Have you specified an argument to take a `**` argument and named it `{{sol_part[name]}}`?"
-
     if arg_names or arg_defaults:
+        MSG_NUM_ARGS = "You should define {{parent[typestr]}} with {{sol_len}} arguments, instead got {{stu_len}}."
         # test number of args
         has_equal_part_len(state, "_spec1_args", nb_args_msg or MSG_NUM_ARGS)
+
+        MSG_BAD_ARG_NAME = "The {{parent[ordinal]}} {{parent[part]}} should be called `{{sol_part[name]}}`, instead got `{{stu_part[name]}}`."
+        MSG_BAD_DEFAULT = (
+            "The {{parent[part]}} `{{stu_part[name]}}` should have no default."
+        )
+        MSG_INC_DEFAULT = (
+            "The {{parent[part]}} `{{stu_part[name]}}` does not have the correct default."
+        )
 
         # iterate over each arg, testing name and default
         for ii in range(len(state.solution_parts["_spec1_args"])):
@@ -382,11 +377,16 @@ def test_args(
 
         # test *args and **kwargs
         if state.solution_parts["*args"]:
+            MSG_NO_VARARG = "Have you specified an argument to take a `*` argument and named it `{{sol_part['*args'][name]}}`?"
             vararg = check_part(state, "*args", "", missing_msg=MSG_NO_VARARG)
+            MSG_VARARG_NAME = "Have you specified an argument to take a `*` argument and named it `{{sol_part[name]}}`?"
             has_equal_part(vararg, "name", MSG_VARARG_NAME)
 
         if state.solution_parts["**kwargs"]:
+            MSG_NO_KWARGS = "Have you specified an argument to take a `**` argument and named it `{{sol_part['**kwargs'][name]}}`?"
             kwarg = check_part(state, "**kwargs", "", missing_msg=MSG_NO_KWARGS)
+            MSG_KWARG_NAME = "Have you specified an argument to take a `**` argument and named it `{{sol_part[name]}}`?"
+
             has_equal_part(kwarg, "name", MSG_KWARG_NAME)
 
 
@@ -515,7 +515,7 @@ with open_file('...') as file:
                 state,
                 "context",
                 i,
-                "%s context" % get_ord(i + 1),
+                f"{get_ord(i + 1)} context",
                 missing_msg=MSG_NUM_CTXT2,
             )
 
@@ -568,10 +568,10 @@ def test_comp(
 
     MSG_INCORRECT_ITER_VARS = "Have you used the correct iterator variables?"
     MSG_INCORRECT_NUM_ITER_VARS = "Have you used {{num_vars}} iterator variables?"
-    MSG_INSUFFICIENT_IFS = "Have you used {{sol_len}} ifs?"
-
     # make sure other messages are set to default if None
     if insufficient_ifs_msg is None:
+        MSG_INSUFFICIENT_IFS = "Have you used {{sol_len}} ifs?"
+
         insufficient_ifs_msg = MSG_INSUFFICIENT_IFS
 
     # get comprehension
@@ -600,4 +600,4 @@ def test_comp(
         # test that ifs are same length
         has_equal_part_len(child, "ifs", insufficient_ifs_msg)
         # test individual ifs
-        multi(check_part_index(child, "ifs", i, get_ord(i + 1) + " if"), if_test)
+        multi(check_part_index(child, "ifs", i, f"{get_ord(i + 1)} if"), if_test)

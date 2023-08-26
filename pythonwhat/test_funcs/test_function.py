@@ -14,9 +14,9 @@ check_function = link_to_state(check_function)
 def arg_test(state, name, do_eval, missing_msg, incorrect_msg):
     arg_state = check_args(state, name=name, missing_msg=missing_msg)
 
-    append = incorrect_msg is None
-
     if isinstance(do_eval, bool):
+        append = incorrect_msg is None
+
         if do_eval:
             has_equal_value(
                 arg_state, incorrect_msg=incorrect_msg, append=append, copy=False

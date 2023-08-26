@@ -31,18 +31,12 @@ def fix_format(arguments):
 def stringify(arguments):
     vararg = str(arguments["args"])[1:-1]
     kwarg = ", ".join(
-        ["%s = %s" % (key, value) for key, value in arguments["kwargs"].items()]
+        [f"{key} = {value}" for key, value in arguments["kwargs"].items()]
     )
     if len(vararg) == 0:
-        if len(kwarg) == 0:
-            return "()"
-        else:
-            return "(" + kwarg + ")"
+        return "()" if not kwarg else f"({kwarg})"
     else:
-        if len(kwarg) == 0:
-            return "(" + vararg + ")"
-        else:
-            return "(" + ", ".join([vararg, kwarg]) + ")"
+        return f"({vararg})" if not kwarg else "(" + ", ".join([vararg, kwarg]) + ")"
 
 
 # TODO: test string syntax with check_function_def

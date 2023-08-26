@@ -335,7 +335,7 @@ if True:
         {
             "DC_CODE": stu_code,
             "DC_SOLUTION": sol_code,
-            "DC_SCT": 'Ex().check_object("%s").has_equal_value()' % name,
+            "DC_SCT": f'Ex().check_object("{name}").has_equal_value()',
         }
     )
     assert not res["correct"]

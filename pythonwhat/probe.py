@@ -81,8 +81,7 @@ class Tree(object):
         return sum(children, base)
 
     def __iter__(self):
-        for ii in self.descend(self.crnt_node):
-            yield ii
+        yield from self.descend(self.crnt_node)
 
 
 class Node(object):
@@ -118,8 +117,7 @@ class Node(object):
         )
 
     def __iter__(self):
-        for c in self.child_list:
-            yield c
+        yield from self.child_list
 
     def partial(self):
         """Return partial of original function call"""
@@ -157,10 +155,7 @@ class Node(object):
 
     @property
     def depth(self):
-        if self.parent:
-            return self.parent.depth + 1
-        else:
-            return 0
+        return self.parent.depth + 1 if self.parent else 0
 
 
 class NodeList(Node):
@@ -188,7 +183,7 @@ class Probe(object):
         instances are assembled into a tree.
 
         """
-        if (len(args) > 0 and not isinstance(args[0], State)) or len(args) == 0:
+        if args and not isinstance(args[0], State) or not args:
             # no state placeholder if a state is passed
             args = ["state_placeholder"] + list(args)
 
@@ -214,10 +209,7 @@ class Probe(object):
             else:
                 node.update_child_calls()
 
-        if self.eval_on_call:
-            return this_node()
-        else:
-            return this_node
+        return this_node() if self.eval_on_call else this_node
 
     @staticmethod
     def build_sub_test_nodes(test, tree, node, arg_name):
